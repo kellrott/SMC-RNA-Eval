@@ -14,9 +14,9 @@ pp = pprint.PrettyPrinter(indent=4)
 
 def check_task_status(task_object):
     if task_object.status == "COMPLETED":
-        print("\nTask status: Completed.")
+        print("\n'{}' is completed.".format(task_object.name))
     else:
-        print("WARNING: task not completed. Current status: {}".format(task_object.status))
+        print("WARNING: '{}' incomplete. Current status: {}".format(task_object.name, task_object.status))
 
 def replace_file_dicts_with_objects(api, project, task_inputs):
     for k, v in task_inputs.iteritems():
@@ -56,11 +56,11 @@ def get_task_input_object(api, task_id):
     task_inputs = empty_tumor_ports_by_id(task_inputs)
     task_inputs = empty_tumor_ports_by_label(app_object, task_inputs)
 
-    print("Task_inputs: ")
-    pp.pprint(task_inputs)
+    # print("Task_inputs: ")
+    # pp.pprint(task_inputs)
     return task_inputs
 
-def copy_to_eval_project(api, task_object, evaluation_project, task_inputs):
+def copy_files_to_evaluation_project(api, task_object, evaluation_project, task_inputs):
     """
     Copy files
      - note that identical files in multiple projects have UNIQUE IDs
@@ -87,7 +87,6 @@ def copy_to_eval_project(api, task_object, evaluation_project, task_inputs):
             # - if it does,     replace the value in the input object with that file
             # - if it does not, copy to new project and set value in input object
             check_file = get_file_by_name(api, project=evaluation_project, filename=new_filename)
-            print(check_file.name)
             if check_file:
                 print("\nWARNING: '{}' already in '{}' project.".format(new_filename, evaluation_project))
                 new_task_inputs[k] = check_file # replace file object with object in new project
@@ -101,7 +100,7 @@ def copy_to_eval_project(api, task_object, evaluation_project, task_inputs):
     if new_files:
         return new_files, new_task_inputs
     else:
-        print("\nNo files copied.")
+        print("No files copied.")
         return None, new_task_inputs
 
 def copy_app_to_evaluation_project(api, task_object, evaluation_project):
@@ -127,10 +126,10 @@ def copy_app_to_evaluation_project(api, task_object, evaluation_project):
     # Try to install the new app -- if it fails, return the app object in the new project
     try:
         installed_app = api.apps.install_app(raw=evaluation_app, id=evaluation_app_id)
-        print("'{}' app from '{}' installed in '{}' project.".format(evaluation_app['label'], submission_username, evaluation_project))
+        print("\n'{}' app from '{}' installed in '{}' project.".format(evaluation_app['label'], submission_username, evaluation_project))
         return installed_app
     except:
-        print("'{}' app already exists in the '{}' project. Returning app in evaluation project.".format(evaluation_app['label'], evaluation_project))
+        print("\n'{}' app already exists in the '{}' project. Returning app in evaluation project.".format(evaluation_app['label'], evaluation_project))
         return get_app_by_name(api, project=evaluation_project, app_name=evaluation_app['label'])
 
 def insert_evaluation_fastqs_into_object(evaluation_fastqs, task_inputs):
@@ -146,11 +145,20 @@ def insert_evaluation_fastqs_into_object(evaluation_fastqs, task_inputs):
                 fastqs.pop()
     return new_task_inputs
 
-def create_task(evaluation_fastqs, project, task_inputs, app_object, debug=True, run=False):
+def create_task(evaluation_fastqs, project, task_inputs, app_object, debug, run_opt):
+
     # Create individualized task names with sample ID and current time
     sample_id = evaluation_fastqs[0].metadata['sample_id']
     current_time = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
     task_name = "{}_{} - {}".format(app_object.name, sample_id, current_time)
+
+    # print the final input object (by names)
+    print("\nFinal inputs (by name): ")
+    names_dict = task_inputs.copy()
+    for k, v in names_dict.iteritems():
+        if v.__class__.__name__ == "File":
+            names_dict[k] = v.name
+    pp.pprint(names_dict)
 
     # Create the task
     if not debug:
@@ -158,19 +166,25 @@ def create_task(evaluation_fastqs, project, task_inputs, app_object, debug=True,
                          project=project,
                          app=app_object, 
                          inputs=task_inputs,
-                         run=run) # IMPORTANT! set run=True if you want to run, not just draft the tasks
-    print("\nTask created: {}".format(task_name))
-    print("\nInput files: {}, {}".format(evaluation_fastqs[0].name, evaluation_fastqs[1].name))
-    print("\nInput object: ")
-    pp.pprint(task_inputs)
+                         run=run_opt) # IMPORTANT! set run=True if you want to run, not just draft the tasks
+        if run_opt == False:
+            print("\nTask is drafted: {}".format(task_name))
+            return new_task
+
+        else:
+            print("\nTask created: {}".format(task_name))
+            return new_task
 
 if __name__ == "__main__":
     # parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--task_id", type=str, help="Alphanumeric Task ID from SBG-CGC")
+    parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC")
     parser.add_argument("-p", "--project", type=str, help="Evaluation Project")
     parser.add_argument("-v", "--verbose", action='store_true', default=False)
     parser.add_argument("-d", "--debug", action='store_true', default=False)
+    parser.add_argument("-r", "--draft-only", dest='run_opt', action='store_false', default=True)
+    parser.set_defaults(run_opt=True)
+
     args = parser.parse_args()
 
     # get args
@@ -178,6 +192,7 @@ if __name__ == "__main__":
     eval_project = args.project
     verbose = args.verbose
     debug = args.debug
+    run_opt = args.run_opt
 
     # get api
     api = sbg.Api(config=sbg.Config(url=environ['API_URL'], token=environ['AUTH_TOKEN']))
@@ -189,7 +204,7 @@ if __name__ == "__main__":
     input_object = get_task_input_object(api, task_id)
 
     # copy files to evaluation project and transform new input object (has new project file ids)
-    new_files, new_input_object = copy_to_eval_project(api, validation_task, eval_project, input_object)
+    new_files, new_input_object = copy_files_to_evaluation_project(api, validation_task, eval_project, input_object)
 
     # Print: new filenames
     if verbose and new_files: 
@@ -210,24 +225,18 @@ if __name__ == "__main__":
         pp.pprint(new_input_object)
 
     # insert the evaluation fastqs into the input_object (modify cmd to loop and create multiple tasks)
+    # IMPORTANT: this step will loop infinitely if the app used it outside the scope of the DREAM Challenge
+    #               - no fastqs in input ports
+    #               - no TUMOR_FASTQ in labels
+    #               - modifying next to be useful for non-paired-end fastq tasks.
     new_input_object = insert_evaluation_fastqs_into_object(eval_fastqs, new_input_object)
-    if verbose:
-        print("\nNew input object following evaluation fastqs insertion:")
-        pp.pprint(new_input_object)
 
-    # final sanity check - print final input object names to check filenames 
-    if verbose:
-        names_dict = new_input_object.copy()
-        for k, v in names_dict.iteritems():
-            if v.__class__.__name__ == "File":
-                names_dict[k] = v.name
-        print("Filenames in new_input_object:")
-        pp.pprint(names_dict)
-
-    # the main event -- run the task (or print task info if debugging)
-    new_task = create_task(evaluation_fastqs=eval_fastqs, \
-                        project=eval_project, \
-                        task_inputs=new_input_object, \
-                        app_object=new_app, \
-                        debug=debug, \
-                        run=True)
+    # THE MAIN EVENT -- run the task (or print task info if debugging)
+    if not debug:
+        print("Preparing task execution.")
+        new_task = create_task(evaluation_fastqs=eval_fastqs, 
+                                project=eval_project, 
+                                task_inputs=new_input_object, 
+                                app_object=new_app, 
+                                debug=debug, 
+                                run_opt=run_opt)

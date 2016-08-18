@@ -172,7 +172,7 @@ def check_parity_by_prefix(list1, list2, sep="_"):
             if l.name.split(sep)[0] != list2[i].name.split(sep)[0]:
                 print("Mismatch detected! {}, {}".format(l.name, list2[i].name))
                 break
-        print("Good news, everyone! The tuples are paired nicely (by prefix/before '{}').".format(sep)) 
+        # print("Good news, everyone! The tuples are paired nicely (by prefix/before '{}').".format(sep)) 
 
 # Check parity in lists
 def check_parity(list1, list2):
@@ -183,7 +183,7 @@ def check_parity(list1, list2):
             if l.metadata['sample_id'] != list2[i].metadata['sample_id']:
                 print("Mismatch detected! {}, {}".format(l.name, list2[i].name))
                 break
-        print("Good news, everyone! The tuples are paired nicely (by sample id).") 
+        # print("Good news, everyone! The tuples are paired nicely (by sample id).") 
 
 # Check task statuses
 def check_task_status(task_object):
