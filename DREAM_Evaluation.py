@@ -4,6 +4,7 @@
 # This will go over how to use the API to go from a Task ID to having the submitted application and reference files cached in a new project, then rerunning it with evaluation data. The evaluation data and new project are mocks which can be replaced for the actual evaluation.
 from __future__ import print_function
 from os import environ
+from sys import argv, exit
 from datetime import datetime
 import sevenbridges as sbg
 import argparse
@@ -81,11 +82,11 @@ def copy_files_to_evaluation_project(api, task_object, evaluation_project, task_
     for k, obj in task_inputs.iteritems():
         if obj.__class__.__name__ == "File":
             submitters_username = task_object.created_by
-            new_filename = "_".join([submitters_username, obj.name]) # e.g gauravdream_rsem_index.tar.gz
+            new_filename = "_".join([task_object.id, submitters_username, obj.name]) # e.g d657568a-4f1d-8f06-333fcd0db4b7_gauravdream_rsem_index.tar.gz
             # new_filename = "_".join(["test", obj.name]) # debugging only
             # Check if the file with that filename already exists in evaluation project (check_file)
-            # - if it does,     replace the value in the input object with that file
-            # - if it does not, copy to new project and set value in input object
+            # - if it does:     replace the value in the input object with that file
+            # - if it does NOT: copy to new project and set value in input object
             check_file = get_file_by_name(api, project=evaluation_project, filename=new_filename)
             if check_file:
                 print("\nWARNING: '{}' already in '{}' project.".format(new_filename, evaluation_project))
@@ -178,20 +179,25 @@ def create_task(evaluation_fastqs, project, task_inputs, app_object, debug, run_
 if __name__ == "__main__":
     # parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC")
-    parser.add_argument("-p", "--project", type=str, help="Evaluation Project")
+    parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC", required=True)
+    parser.add_argument("-p", "--project", type=str, help="Evaluation Project [e.g. dream/eval-project", required=True)
+    parser.add_argument("-f", "--fastqs", type=str, nargs="+", help="Pair of fastqs for evaluation app [e.g. sim99_1.fq.gz, sim99_2.fq.gz].")
     parser.add_argument("-v", "--verbose", action='store_true', default=False)
-    parser.add_argument("-d", "--debug", action='store_true', default=False)
-    parser.add_argument("-r", "--draft-only", dest='run_opt', action='store_false', default=True)
+    parser.add_argument("-d", "--debug", action='store_true', help="Execute code but do not deploy task on platform.", default=False)
+    parser.add_argument("-r", "--draft-only", dest='run_opt', action='store_false', help="Draft task but do not run.", default=True)
     parser.set_defaults(run_opt=True)
+    if len(argv) < 6:
+        parser.print_help()
+        exit(1)
 
     args = parser.parse_args()
 
     # get args
-    task_id = args.task_id
-    eval_project = args.project
-    verbose = args.verbose
-    debug = args.debug
+    task_id = args.task_id # submission task id
+    eval_project = args.project # evaluation project (where withheld data lives)
+    eval_fastqs = args.fastqs # list of fastqs
+    verbose = args.verbose # verbose printouts
+    debug = args.debug # don't run tasks, only set up 
     run_opt = args.run_opt
 
     # get api
@@ -207,36 +213,40 @@ if __name__ == "__main__":
     new_files, new_input_object = copy_files_to_evaluation_project(api, validation_task, eval_project, input_object)
 
     # Print: new filenames
-    if verbose and new_files: 
-        print("\nNew filenames in {}:".format(eval_project))
-        print(*[f.name for f in new_files], sep="\n")  
     if verbose:
+        if new_files: 
+            print("\nNew filenames in {}:".format(eval_project))
+            print(*[f.name for f in new_files], sep="\n")  
         print("\nNew input object:")
         pp.pprint(new_input_object)
 
     # grab the new app (if already exists, get app object in evaluation project)
     new_app = copy_app_to_evaluation_project(api, validation_task, evaluation_project=eval_project)
 
-    # grab evaluation fastqs here by metadata 
-    eval_fastq_metadata = {"sample_id":"evalabc123"} # just a dummy sample_id
-    eval_fastqs = split_fastqs_tuple(fastqs=get_files_by_metadata(api, eval_project, eval_fastq_metadata))[0]
+    # if unspecified, grab dummy evaluation fastqs here 
+    if not eval_fastqs:
+        eval_fastq_metadata = {"sample_id":"evalabc123"} # just a dummy sample_id
+        eval_fastqs = split_fastqs_tuple(fastqs=get_files_by_metadata(api, eval_project, eval_fastq_metadata))[0]
+    else:
+        eval_fastqs = tuple(get_file_by_name(api, eval_project, f) for f in eval_fastqs)
     if verbose:
+
+        print("Evaluating '{}' with the following data '{}'.".format(new_app, eval_fastqs))
         print(*[fq.name for fq in eval_fastqs], sep="\n")
         pp.pprint(new_input_object)
 
     # insert the evaluation fastqs into the input_object (modify cmd to loop and create multiple tasks)
     # IMPORTANT: this step will loop infinitely if the app used it outside the scope of the DREAM Challenge
-    #               - no fastqs in input ports
-    #               - no TUMOR_FASTQ in labels
-    #               - modifying next to be useful for non-paired-end fastq tasks.
+    # - no fastqs in input ports
+    # - no TUMOR_FASTQ in labels
+    # - modifying next to be useful for non-paired-end fastq tasks.
     new_input_object = insert_evaluation_fastqs_into_object(eval_fastqs, new_input_object)
 
     # THE MAIN EVENT -- run the task (or print task info if debugging)
-    if not debug:
-        print("Preparing task execution.")
-        new_task = create_task(evaluation_fastqs=eval_fastqs, 
-                                project=eval_project, 
-                                task_inputs=new_input_object, 
-                                app_object=new_app, 
-                                debug=debug, 
-                                run_opt=run_opt)
+    print("Preparing task execution.")
+    new_task = create_task(evaluation_fastqs=eval_fastqs, 
+                            project=eval_project, 
+                            task_inputs=new_input_object, 
+                            app_object=new_app, 
+                            debug=debug, 
+                            run_opt=run_opt)
