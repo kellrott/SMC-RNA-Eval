@@ -186,12 +186,12 @@ def ping_task_status(task_object):
 if __name__ == "__main__":
     # parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC", required=True)
-    parser.add_argument("-p", "--project", type=str, help="Evaluation Project [e.g. dream/eval-project", required=True)
-    parser.add_argument("-f", "--fastqs", type=str, nargs="+", help="Pair of fastqs for evaluation app [e.g. sim99_1.fq.gz, sim99_2.fq.gz].")
+    parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC [e.g. -t '752c1086-9d42-445f-a59e-38020a0857c9'].", required=True)
+    parser.add_argument("-p", "--project", type=str, help="Evaluation Project [e.g. -p 'smc-rna-admin/eval-project'].", required=True)
+    parser.add_argument("-f", "--fastqs", type=str, nargs="+", help="Fastq filenames [e.g. -f 'sim99_1.fq.gz' 'sim99_2.fq.gz'].")
     parser.add_argument("-v", "--verbose", action='store_true', default=False)
-    parser.add_argument("-d", "--debug", action='store_true', help="Execute code but do not deploy task on platform.", default=False)
-    parser.add_argument("-r", "--draft-only", dest='run_opt', action='store_false', help="Draft task but do not run.", default=True)
+    parser.add_argument("-d", "--debug", action='store_true', help="Execute code but do not deploy task on CGC.", default=False)
+    parser.add_argument("-r", "--draft-only", dest='run_opt', action='store_false', help="Draft task on CGC but do not run.", default=True)
     parser.set_defaults(run_opt=True)
 
     if len(argv) < 5:
