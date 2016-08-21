@@ -176,6 +176,13 @@ def create_task(evaluation_fastqs, project, task_inputs, app_object, debug, run_
             print("\nTask created: {}".format(task_name))
             return new_task
 
+def ping_task_status(task_object):
+    # Refresh task details
+    status = task_object.get_execution_details().status
+    if status:
+        print("\nTask status as of {}: {}".format(time.ctime(), status))
+    return status
+
 if __name__ == "__main__":
     # parser
     parser = argparse.ArgumentParser()
@@ -186,10 +193,10 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--debug", action='store_true', help="Execute code but do not deploy task on platform.", default=False)
     parser.add_argument("-r", "--draft-only", dest='run_opt', action='store_false', help="Draft task but do not run.", default=True)
     parser.set_defaults(run_opt=True)
-    if len(argv) < 6:
+
+    if len(argv) < 5:
         parser.print_help()
         exit(1)
-
     args = parser.parse_args()
 
     # get args
@@ -244,9 +251,35 @@ if __name__ == "__main__":
 
     # THE MAIN EVENT -- run the task (or print task info if debugging)
     print("Preparing task execution.")
-    new_task = create_task(evaluation_fastqs=eval_fastqs, 
+    task = create_task(evaluation_fastqs=eval_fastqs, 
                             project=eval_project, 
                             task_inputs=new_input_object, 
                             app_object=new_app, 
                             debug=debug, 
                             run_opt=run_opt)
+
+    # ping task to check for completion -- can expand to glob outputs for downstream evaluation
+    while True:
+        try:
+            time.sleep(60) # seconds
+            status = ping_task_status(task)
+            # Break if task is completed
+            if status == "COMPLETED": 
+                print("Task: {}:".format(task.name))
+                print("Task ID: {}:".format(task.id))
+                print("Task completed at: {} [GMT].".format(" ".join(task.end_time.isoformat().split("T"))))
+                break
+            elif any(status in s for s in ["FAILED", "ABORTED"]):
+                print("\nTask {}".format(status))
+                break
+        except TypeError:
+            status = task.status
+            if status == "DRAFT":
+                print("\nTask is a draft only.")
+                break
+        except KeyboardInterrupt:
+            print("\nKeyboard interruption. Exiting.")
+            print("Task: {}".format(task.name))
+            print("Task ID: {}".format(task.id))
+            print("Task status upon exit at {}: {}".format(time.ctime(), status))
+            exit(1)
