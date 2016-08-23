@@ -18,8 +18,8 @@ def get_ids(input_list):
 def get_projects_list(api):
     return list(api.projects.query(limit=None).all())
 
-def get_projects_by_string(query):
-    return filter(lambda q: query.lower() in q, projects_list_by_id)
+def get_projects_by_string(api, query):
+    return filter(lambda q: query.lower() in q, [p.id for p in get_projects_list(api)])
 
 def get_apps_in_project(api, project):
     return list(api.apps.query(project).all())
@@ -109,6 +109,9 @@ def filter_by_all_strings(input_list, filter_list=['sim', 'isoforms']):
 def filter_by_any_strings(input_list, filter_list=['sim', 'isoforms']):
     return [f for f in input_list if any(s in f.name for s in filter_list)]
 
+# def filter_by_any_metadata(input_list, filter_list=['sim', 'isoforms']):
+#     return [f for f in input_list if any(s in f.name for s in filter_list)]
+
 # Working with Fastqs
 def get_all_fastqs(api, project, gz=True):
     # Doesn't handle longer filenames
@@ -185,24 +188,15 @@ def check_parity(list1, list2):
                 break
         # print("Good news, everyone! The tuples are paired nicely (by sample id).") 
 
-# Check task statuses
-def check_task_status(task_object):
-    status = False
-    if task_object.status == "COMPLETED":
-        print("\n{}: Completed.".format(task_object.name))
-        status = True
-    else:
-        print("WARNING: {} incomplete. Current status: {}".format(task_object.name, task_object.status))
-    return status
+# Retrieving task status
+def refresh_task_status(task_object, print_opt=False):
+    task_object.get_execution_details()
+    if print_opt:
+        print("'{}' status: {}".format(task_object.name, task_object.status))
+    return task_object
 
-def ping_tasks_for_completion(task_objects):
-    threading.Timer(60*20, ping_tasks_for_completion).start() # time is in seconds so multiply by minutes desired 
-    status = [check_task_status(task) for task in task_objects]
-    print("All tasks completed: {}".status)
-    return status
-
-def check_task_status_all(tasks):
-    return [check_task_status(task) for task in tasks]
+def refresh_task_status_list(tasks_objects_list, print_opt=False):
+    return [refresh_task_status(t, print_opt) for t in tasks_objects_list]
 
 if __name__=="__main__":
     print("DREAM Challenge Helper functions!")
