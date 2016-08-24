@@ -178,7 +178,7 @@ def create_task(evaluation_fastqs, project, task_inputs, app_object, debug, run_
 
 def ping_task_status(task_object):
     # Refresh task details
-    status = task_object.get_execution_details().status
+    status = task_object.reload().status
     if status:
         print("\nTask status as of {}: {}".format(time.ctime(), status))
     return status
@@ -186,7 +186,8 @@ def ping_task_status(task_object):
 if __name__ == "__main__":
     # parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC [e.g. -t '752c1086-9d42-445f-a59e-38020a0857c9'].", required=True)
+    parser.add_argument("-u", "--task-url", type=str, help="Alphanumeric Task ID from SBG-CGC [e.g. -u 'https://cgc.sbgenomics.com/u/gauravdream/workflow/tasks/752c1086-9d42-445f-a59e-38020a0857c9'].")
+    parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC [e.g. -t '752c1086-9d42-445f-a59e-38020a0857c9'].")
     parser.add_argument("-p", "--project", type=str, help="Evaluation Project [e.g. -p 'smc-rna-admin/eval-project'].", required=True)
     parser.add_argument("-f", "--fastqs", type=str, nargs="+", help="Fastq filenames [e.g. -f 'sim99_1.fq.gz' 'sim99_2.fq.gz'].")
     parser.add_argument("-v", "--verbose", action='store_true', default=False)
@@ -195,12 +196,21 @@ if __name__ == "__main__":
     parser.set_defaults(run_opt=True)
 
     if len(argv) < 5:
+        print("Required arguments missing.")
         parser.print_help()
         exit(1)
     args = parser.parse_args()
 
     # get args
-    task_id = args.task_id # submission task id
+    if args.task_url:
+        task_id = args.task_url.split("/").pop() # submission URL
+        if task_id == "#": 
+            task_id = args.task_url.split("/")[-2] # check that last element isn't the "#" char
+    elif args.task_id:
+        task_id = args.task_id # submission task id
+    else:
+        print("Please submit valid URL or Task ID")
+        exit(1)
     eval_project = args.project # evaluation project (where withheld data lives)
     eval_fastqs = args.fastqs # list of fastqs
     verbose = args.verbose # verbose printouts
