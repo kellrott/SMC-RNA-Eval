@@ -89,10 +89,19 @@ def print_app_inputs(app_object):
     print("Input Ports (labels, IDs): ")
     print(*zip(get_input_labels(app_object.raw['inputs']), get_input_ids(app_object.raw['inputs'])), sep="\n")
 
-def generate_input_object(app_object):
-    # Feed this an app and it will print and return an input dict that you can fill and give to a task for execution!
-    input_object = dict((str(k['id'].split('#')[-1]), "") for k in app_object.raw['inputs'])
-    pp.pprint(input_object)
+def generate_input_object(app_object, required=False, print_opt=False):
+    """
+    Generates a input object template for submitting tasks
+        app_object
+        if required = True, get only the input ports without "null" as an acceptable "type"
+        if print_opt = True, pretty print to console (for easier copy-pasting)
+    """
+    if required:
+        input_object = dict((str(k['id'].split('#')[-1]), "") for k in app_object.raw['inputs'] if "null" not in k['type'])
+    else:
+        input_object = dict((str(k['id'].split('#')[-1]), "") for k in app_object.raw['inputs'])
+    if print_opt:
+        pp.pprint(input_object)
     return input_object
 
 # Sorting - very important for pairing lists of files
