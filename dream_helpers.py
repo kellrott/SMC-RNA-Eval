@@ -199,7 +199,7 @@ def check_parity(list1, list2):
 
 # Retrieving task status
 def refresh_task_status(task_object, print_opt=False):
-    task_object.get_execution_details()
+    task_object.reload()
     if print_opt:
         print("'{}' status: {}".format(task_object.name, task_object.status))
     return task_object
