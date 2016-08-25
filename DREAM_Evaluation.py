@@ -186,7 +186,7 @@ def ping_task_status(task_object):
 if __name__ == "__main__":
     # parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--task-url", type=str, help="Alphanumeric Task ID from SBG-CGC [e.g. -u 'https://cgc.sbgenomics.com/u/gauravdream/workflow/tasks/752c1086-9d42-445f-a59e-38020a0857c9'].")
+    parser.add_argument("-u", "--task-url", type=str, help="URL from an SBG-CGC Task [e.g. -u 'https://cgc.sbgenomics.com/u/gauravdream/workflow/tasks/752c1086-9d42-445f-a59e-38020a0857c9'].")
     parser.add_argument("-t", "--task-id", type=str, help="Alphanumeric Task ID from SBG-CGC [e.g. -t '752c1086-9d42-445f-a59e-38020a0857c9'].")
     parser.add_argument("-p", "--project", type=str, help="Evaluation Project [e.g. -p 'smc-rna-admin/eval-project'].", required=True)
     parser.add_argument("-f", "--fastqs", type=str, nargs="+", help="Fastq filenames [e.g. -f 'sim99_1.fq.gz' 'sim99_2.fq.gz'].")
