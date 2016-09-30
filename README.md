@@ -1,5 +1,44 @@
 # SMC-RNA-Eval
 
+Google tools:
+https://cloud.google.com/sdk/docs/quickstart-linux
+
+wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-128.0.0-linux-x86_64.tar.gz
+tar xvzf google-cloud-sdk-128.0.0-linux-x86_64.tar.gz
+. google-cloud-sdk/path.bash.inc
+gcloud auth login
+
+
+Other code
+==========
+
+git clone https://github.com/Sage-Bionetworks/SMC-RNA-Challenge.git
+
+bash SMC-RNA-Challenge/install-ubuntu.sh
+
+
+Docker Install
+==============
+
+sudo usermod -aG docker $USER
+
+
+Get an entry
+============
+
+mkdir data
+
+./get-entry-cache.sh isoform 7150898
+cd entries/7150898/
+
+Load Entries
+`for a in *.tar; do docker load -i $a; done`
+
+../../SMC-RNA-Challenge/script/dream_runner.py inputs sim1 isoform_1471603893_merged.cwl isoform
+
+
+
+
 ## DREAM_Evaluation.py
 Usage:
 	
