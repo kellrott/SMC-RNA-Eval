@@ -34,7 +34,8 @@ cd entries/7150898/
 Load Entries
 `for a in *.tar; do docker load -i $a; done`
 
-../../SMC-RNA-Challenge/script/dream_runner.py inputs sim1 isoform_1471603893_merged.cwl isoform
+../../SMC-RNA-Challenge/script/dream_runner.py inputs sim1 isoform_1471603893_merged.cwl isoform --dir ../../data
+
 
 
 
