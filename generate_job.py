@@ -8,7 +8,7 @@ import csv
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--test-bucket", default="gs://dream-smc-rna-testing/tumors")
+    parser.add_argument("--test-bucket", default="gs://smc-rna-eval/tumors")
     parser.add_argument("--syn-table")
     parser.add_argument("test")
     parser.add_argument("workflow")
@@ -34,11 +34,11 @@ if __name__ == "__main__":
             },
             "REFERENCE_GENOME" : {
                 "class" : "File",
-                "path" : "gs://dream-smc-rna/Homo_sapiens.GRCh37.75.dna_sm.primary_assembly.fa"
+                "path" : "gs://smc-rna-eval/Homo_sapiens.GRCh37.75.dna_sm.primary_assembly.fa"
             },
             "REFERENCE_GTF" : {
                 "class" : "File",
-                "path" : "gs://dream-smc-rna/Homo_sapiens.GRCh37.75.gtf"
+                "path" : "gs://smc-rna-eval/Homo_sapiens.GRCh37.75.gtf"
             }
         }
         
