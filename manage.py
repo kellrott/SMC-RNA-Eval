@@ -80,11 +80,22 @@ def command_missing(syn, args):
     for subid, ent in missing:
         print subid, ent
 
-                    
+
+ITEM_TABLE="syn7348150"
+def command_items(syn, args):
+    table = syn.get(ITEM_TABLE)
+    results = syn.tableQuery("select * from %s" % (table.id))
+    for row in results:
+        print "%s\t%s" % (row[2], row[3].replace("gs://smc-rna-cache/", "gs://smc-rna-eval/entries/"))
+    #df = results.asDataFrame()
+    #for row_name in df.index:
+    #    print row_name, df.loc[row_name]
+        
 def command_info(syn, args):
     sub = syn.getSubmission(args.id)
     print sub.entity
-
+    
+    
 def command_delete(syn, args):
     sub = syn.getSubmission(args.id)
     print "Deleting"
@@ -118,6 +129,9 @@ if __name__ == "__main__":
     parser_download.add_argument("ids", nargs="+")
     parser_download.set_defaults(func=command_download)
 
+    parser_items = subparsers.add_parser("items")
+    parser_items.set_defaults(func=command_items)
+    
     parser_missing = subparsers.add_parser('missing')
     parser_missing.set_defaults(func=command_missing)
 
