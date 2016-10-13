@@ -75,6 +75,8 @@ if __name__ == "__main__":
     parser.add_argument("cwl_file")
     parser.add_argument("job_file")
     parser.add_argument("out_bucket")
+    parser.add_argument("--disable-net", action="store_true", default=True)
+    parser.add_argument("--default-container", default="ubuntu:latest")
     parser.add_argument("--cache-dir", default="cache")
     parser.add_argument("--work-base", default="/tmp")
     parser.add_argument("--clear-cache", action="store_true", default=False)
