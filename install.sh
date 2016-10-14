@@ -14,4 +14,3 @@ sudo pip install synapseclient pyyaml
 git clone https://github.com/Sage-Bionetworks/SMC-RNA-Examples.git
 
 docker pull dreamchallenge/smcrna-functions
-
