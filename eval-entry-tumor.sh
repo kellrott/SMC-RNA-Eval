@@ -6,6 +6,7 @@ TUMOR_ID=$3
 TIMEOUT=$4
 BUCKET=gs://dream-smc-rna
 RUN_SUFFIX=$CONTEST_ID-$ENTRY_ID-$TUMOR_LOWER
+ENTRY_PATH=cache/smc-rna-eval/entries/
 
 if [ $CONTEST_ID == 'fusion' ]; then
     export CONTEST_SIGN='FusionDetection'
@@ -13,6 +14,13 @@ else
     export CONTEST_SIGN='IsoformQuantification'
 fi
 
-gsutil cp -r $BUCKET/entries/$CONTEST_SIGN/$ENTRY_ID cache/smc-rna-eval/entries/
+mkdir -p $ENTRY_PATH
+gsutil cp -r $BUCKET/entries/$CONTEST_SIGN/$ENTRY_ID $ENTRY_PATH
 for a in cache/smc-rna-eval/entries/$ENTRY_ID/*.tar; do echo $a; docker load -i $a; done
 
+CWL_PATH=$(ls $ENTRY_PATH/$ENTRY_ID/*.cwl)
+
+./generate_job.py --syn-table syn.table $CONTEST_SIGN $CWL_PATH $TUMOR_ID > ~/test.$TUMOR_ID.json
+./cwl-gs-tool $CWL_PATH#main ~/test.$TUMOR_ID.json $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
+
+# graph agent event assembler

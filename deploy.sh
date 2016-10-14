@@ -22,4 +22,4 @@ gcloud compute instances create smc-rna-eval-$RUN_SUFFIX \
 
 sleep 60
 
-gcloud compute --project $PROJECT ssh smc-rna-eval-$RUN_SUFFIX "nohup sudo sudo -i -u ubuntu bash /home/ubuntu/SMC-RNA-Eval/eval_entry_tumor.sh $CONTEST_ID $ENTRY_ID $TUMOR_ID $TIMEOUT > /tmp/eval.out 2> /tmp/eval.err &"
+gcloud compute --project $PROJECT ssh smc-rna-eval-$RUN_SUFFIX "nohup sudo sudo -i -u ubuntu bash /home/ubuntu/SMC-RNA-Eval/eval-entry-tumor.sh $CONTEST_ID $ENTRY_ID $TUMOR_ID $TIMEOUT > /tmp/eval.out 2> /tmp/eval.err &"
