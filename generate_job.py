@@ -8,7 +8,8 @@ import csv
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--test-bucket", default="gs://smc-rna-eval/tumors")
+    parser.add_argument("--bucket", default="gs://dream-smc-rna")
+    parser.add_argument("--data", default="training")
     parser.add_argument("--syn-table")
     parser.add_argument("test")
     parser.add_argument("workflow")
@@ -20,25 +21,25 @@ if __name__ == "__main__":
     with open(args.syn_table) as handle:
         reader = csv.reader(handle, delimiter="\t")
         for row in reader:
-            synTable[row[0]] = row[1]
+            synTable[row[0]] = "%s/%s" % (args.bucket, row[1])
 
     for tumor in args.tumor:
         job = {
             "TUMOR_FASTQ_1" : {
                 "class" : "File",
-                "path" : "%s/%s_mergeSort_1.fq.gz" % (args.test_bucket, tumor)
+                "path" : "%s/%s/%s_mergeSort_1.fq.gz" % (args.bucket, args.data, tumor)
             },
             "TUMOR_FASTQ_2" : {
                 "class" : "File",
-                "path" : "%s/%s_mergeSort_2.fq.gz" % (args.test_bucket, tumor)
+                "path" : "%s/%s/%s_mergeSort_2.fq.gz" % (args.bucket, args.data, tumor)
             },
             "REFERENCE_GENOME" : {
                 "class" : "File",
-                "path" : "gs://smc-rna-eval/Homo_sapiens.GRCh37.75.dna_sm.primary_assembly.fa"
+                "path" : "%s/Homo_sapiens.GRCh37.75.dna_sm.primary_assembly.fa" % (args.bucket)
             },
             "REFERENCE_GTF" : {
                 "class" : "File",
-                "path" : "gs://smc-rna-eval/Homo_sapiens.GRCh37.75.gtf"
+                "path" : "%s/Homo_sapiens.GRCh37.75.gtf" % (args.bucket)
             }
         }
         
@@ -64,5 +65,3 @@ if __name__ == "__main__":
             }
 
         print json.dumps(job)
-                
-            
