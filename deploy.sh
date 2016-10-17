@@ -11,7 +11,7 @@ MACHINE_TYPE=n1-standard-4
 SNAPSHOT=smc-rna-base
 ZONE=us-west1-b
 
-PROJECT=isb-cgc-03-0004
+PROJECT=isb-cgc-04-0029
 
 gcloud compute disks create smc-rna-eval-disk-$RUN_SUFFIX \
 --source-snapshot $SNAPSHOT --size $DISK_SIZE --project $PROJECT --zone $ZONE
