@@ -8,7 +8,7 @@ import csv
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--bucket", default="gs://dream-smc-rna")
+    parser.add_argument("--bucket", default="gs://smc-rna-eval")
     parser.add_argument("--data", default="training")
     parser.add_argument("--syn-table")
     parser.add_argument("test")
