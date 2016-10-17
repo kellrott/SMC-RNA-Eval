@@ -24,8 +24,8 @@ CWL_PATH=$(ls $ENTRY_PATH/$ENTRY_ID/*.cwl)
 ./SMC-RNA-Eval/generate_job.py --syn-table SMC-RNA-Eval/syn.table $CONTEST_SIGN $CWL_PATH $TUMOR_ID > $INPUT_JOB
 ./SMC-RNA-Eval/cwl-gs-tool $CWL_PATH#main $INPUT_JOB $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 
-if [ "$3" != "" ]; then
-  sudo poweroff
-fi
+# if [ "$3" != "" ]; then
+#   sudo poweroff
+# fi
 
 # graph agent event assembler
