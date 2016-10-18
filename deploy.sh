@@ -11,7 +11,6 @@ TUMOR_LOWER=`echo $TUMOR_ID | tr "[[:upper:]]" "[[:lower:]]"`
 RUN_SUFFIX=$CONTEST_ID-$ENTRY_ID-$TUMOR_LOWER
 DISK_SIZE=300
 TIMEOUT=126000 #35 hours in seconds
-MACHINE_TYPE=n1-standard-4
 SNAPSHOT=smc-rna-base
 ZONE=us-west1-b
 
