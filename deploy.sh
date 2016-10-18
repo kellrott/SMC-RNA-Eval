@@ -1,8 +1,12 @@
 #!/bin/bash
 
+# Usage Example:
+# $ ./deploy.sh isoform 7367548 sim6 n1-standard-4
+
 CONTEST_ID=$1
 ENTRY_ID=$2
 TUMOR_ID=$3
+MACHINE_TYPE=$4
 TUMOR_LOWER=`echo $TUMOR_ID | tr "[[:upper:]]" "[[:lower:]]"`
 RUN_SUFFIX=$CONTEST_ID-$ENTRY_ID-$TUMOR_LOWER
 DISK_SIZE=300
