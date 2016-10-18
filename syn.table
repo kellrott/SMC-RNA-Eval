@@ -11,6 +11,8 @@ syn7217759	entries/FusionDetection/7255230/chimerascan_bowtie1_index.tar.gz
 syn5987269	entries/FusionDetection/7255230/star_index.tar.gz
 syn7247857	entries/FusionDetection/7269246/Homo_sapiens.GRCh37.75.cdna.all.fa.gz
 syn7251201	entries/FusionDetection/7269246/Homo_sapiens.GRCh37.75.sqlite
+syn7217759  entries/FusionDetection/7378934/chimerascan_bowtie1_index.tar.gz
+syn5987269  entries/FusionDetection/7378934/star_index.tar.gz
 syn7150814	entries/IsoformQuantification/7150823/GRCh37.75.idx
 syn7150814	entries/IsoformQuantification/7150898/GRCh37.75.idx
 syn7115246	entries/IsoformQuantification/7185755/WinterfellDream2016_RSEM.tar.gz
