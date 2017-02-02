@@ -19,7 +19,7 @@ https://github.com/alliecreason/rnaseqSim handles #1
 
 https://github.com/Sage-Bionetworks/SMC-RNA-Challenge does #2 and #4
 
-This repo does #2
+This repo does #3
 
 
 Quick start
