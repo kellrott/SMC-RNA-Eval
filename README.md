@@ -6,18 +6,18 @@ This code is intended to be run on Google Compute Engine (GCE) and presumes acce
 
 The challenge works like this:
 
-1. Public *training data* is generated.
-2. Participants use that training data to *develop and submit* tools to the challenge. 
-3. Submissions are *tested* against private tumor data and produces results.
-4. Results from the tests are *evaluated statistically* and posted to a public leaderboard.
+1. Public **training data** is generated.
+2. Participants use that training data to **develop and submit** tools to the challenge. 
+3. Submissions are **tested** against private tumor data and produces results.
+4. Results from the tests are **evaluated statistically** and posted to a public leaderboard.
 
-Each tool does *isoform* quantification and/or *fusion* detection.
+Each tool does **isoform** quantification and/or **fusion** detection.
 
 Repos:
 
-https://github.com/alliecreason/rnaseqSim handles #1
+[alliecreason/rnaseqSim](https://github.com/alliecreason/rnaseqSim) handles #1
 
-https://github.com/Sage-Bionetworks/SMC-RNA-Challenge does #2 and #4
+[Sage-Bionetworks/SMC-RNA-Challenge](https://github.com/Sage-Bionetworks/SMC-RNA-Challenge) does #2 and #4
 
 This repo does #3
 
