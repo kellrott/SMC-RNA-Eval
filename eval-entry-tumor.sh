@@ -21,7 +21,7 @@ for a in cache/smc-rna-eval/entries/$ENTRY_ID/*.tar; do echo $a; docker load -i 
 
 CWL_PATH=$(ls $ENTRY_PATH/$ENTRY_ID/*.cwl)
 
-./SMC-RNA-Eval/generate_job.py --syn-table SMC-RNA-Eval/syn.table $CONTEST_SIGN $CWL_PATH $TUMOR_ID > $INPUT_JOB
+./SMC-RNA-Eval/generate_job.py --data real --syn-table SMC-RNA-Eval/syn.table $CONTEST_SIGN $CWL_PATH $TUMOR_ID > $INPUT_JOB
 ./SMC-RNA-Eval/cwl-gs-tool $CWL_PATH#main $INPUT_JOB $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 
 gsutil cp /tmp/eval.* $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
