@@ -4,6 +4,7 @@ import os
 import shutil
 import synapseclient
 import argparse
+from collections import OrderedDict
 
 
 def clean_str(s):
@@ -29,12 +30,16 @@ def command_list(syn, args):
         "Organisation"
     )
     for submission, status in syn.getSubmissionBundles(evaluation):
-        #team = syn.getTeam(submission.teamId)
+        if hasattr(submission, "teamId"):
+            team = syn.getTeam(submission.teamId)
+            teamName = team.name
+        else:
+            teamName = "N/A"
         user = syn.getUserProfile(submission.userId)
         s = syn.getSubmission(submission.id)
         print format_str % (
             submission.id,
-            "test", #clean_str(team.name),
+            teamName,
             submission.createdOn,
             status.status,
             "-", #s.entity.annotations['synapse_projectid'][0],
@@ -45,6 +50,49 @@ def command_list(syn, args):
         )
         #print submission.entity
         #print s.entity
+
+
+def command_leaderboard(syn, args):
+    evaluation = syn.getEvaluation(args.eval_queue_id)
+
+    output = []
+    for submission, status in syn.getSubmissionBundles(evaluation):
+        annotations = synapseclient.annotations.from_submission_status_annotations(status.annotations) if 'annotations' in status else {}
+
+        if hasattr(submission, "teamId"):
+            team = syn.getTeam(submission.teamId)
+            teamName = team.name
+        else:
+            teamName = "N/A"
+        user = syn.getUserProfile(submission.userId)
+        s = syn.getSubmission(submission.id)
+        
+        o = OrderedDict()
+        o["EntryID"] = submission.id
+        o["Team ID"] = teamName
+        o["Date"] = submission.createdOn
+        o["Name"] = clean_str(submission.name)
+        
+        for k, v in annotations.items():
+            if k not in [ 'scopeId', 'objectId', 'team' ]:
+                o[k] = v
+        output.append(o)
+    
+    header = []
+    for i in output:
+        for k in sorted(i.keys()):
+            if k not in header:
+                header.append(k)
+    
+    print " | ".join(header)
+    for i in output:
+        o = []
+        for k in header:
+            
+            o.append("%s" % i.get(k, ""))
+        print " | ".join(o)
+    
+        
         
 def command_download(syn, args):
     if not os.path.exists(args.out):
@@ -56,6 +104,8 @@ def command_download(syn, args):
         if not os.path.exists(entry_dir):
             os.mkdir(entry_dir)
         sub = syn.getSubmission(i)
+        #print sub
+        #print sub.entity
         shutil.copy( sub.entity.path, os.path.join(entry_dir, "submission.cwl"))
         """
         for ents in ['image_entities', 'tool_entities', 'workflow_entity']:
@@ -102,6 +152,9 @@ if __name__ == "__main__":
     parser_list = subparsers.add_parser('list', help="List submissions to an evaluation or list evaluations")
     parser_list.add_argument("-t", dest="tab", action="store_true", default=False)
     parser_list.set_defaults(func=command_list)
+
+    parser_leaderboard = subparsers.add_parser('leaderboard', help="List submissions to an evaluation or list evaluations")
+    parser_leaderboard.set_defaults(func=command_leaderboard)
 
     parser_info = subparsers.add_parser('info', help="List submissions to an evaluation or list evaluations")
     parser_info.add_argument("id")
