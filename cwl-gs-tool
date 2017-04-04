@@ -78,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument("--disable-net", action="store_true", default=True)
     parser.add_argument("--default-container", default="ubuntu:latest")
     parser.add_argument("--cache-dir", default="cache")
-    parser.add_argument("--work-base", default="/tmp")
+    parser.add_argument("--work-base", default="/opt")
     parser.add_argument("--clear-cache", action="store_true", default=False)
     
     args = parser.parse_args()
