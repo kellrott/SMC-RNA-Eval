@@ -78,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument("--disable-net", action="store_true", default=True)
     parser.add_argument("--default-container", default="ubuntu:latest")
     parser.add_argument("--cache-dir", default="cache")
-    parser.add_argument("--work-base", default="/tmp")
+    parser.add_argument("--work-base", default="/opt")
     parser.add_argument("--clear-cache", action="store_true", default=False)
     
     args = parser.parse_args()
@@ -98,6 +98,6 @@ if __name__ == "__main__":
     env = os.environ
     env['TMPDIR'] = args.work_base
     with open(os.path.join(tdir, "job.out"), "w") as stdout_handle:
-        subprocess.check_call(["cwltool", os.path.abspath(args.cwl_file), input_path], stdout=stdout_handle, env=env, cwd=tdir)
+        subprocess.check_call(["cwltool", "--leave-container", os.path.abspath(args.cwl_file), input_path], stdout=stdout_handle, env=env, cwd=tdir)
 
     subprocess.check_call(["gsutil", "cp", "-r", os.path.join(tdir, "*"), args.out_bucket])
