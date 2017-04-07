@@ -5,7 +5,7 @@ sudo apt-get install -y git python-pip python-dev
 
 docker ps
 if [ "$?" != "0" ]; then
-  sudo apt-get install -y docker.io
+  sudo apt-get install -y docker.io nodejs
   sudo usermod -aG docker $USER
 fi
 
