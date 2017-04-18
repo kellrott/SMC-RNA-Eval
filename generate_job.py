@@ -5,6 +5,7 @@ import yaml
 import argparse
 import json
 import csv
+import sys
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -54,10 +55,14 @@ if __name__ == "__main__":
                 if d['id'] == "#main":
                     workflow = d
         user_inputs = {}
-        for i in workflow.get("hints", []):
-            if os.path.basename(i['class']) == 'synData':
-                user_inputs[i['input']] = i['entity']
-        
+        try:
+            for i in workflow.get("hints", []):
+                if os.path.basename(i['class']) == 'synData':
+                    user_inputs[i['input']] = i['entity']
+        except AttributeError:
+            sys.stderr.write("No hints found\n")
+            pass
+
         for k, v in user_inputs.items():
             job[k] = { 
                 "class" : "File",

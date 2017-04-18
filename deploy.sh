@@ -8,6 +8,7 @@ ENTRY_ID=$2
 TUMOR_ID=$3
 MACHINE_TYPE=$4
 TUMOR_LOWER=`echo $TUMOR_ID | tr "[[:upper:]]" "[[:lower:]]" | tr "_" "-"`
+SBG=$5
 RUN_SUFFIX=$CONTEST_ID-$ENTRY_ID-$TUMOR_LOWER
 DISK_SIZE=300
 TIMEOUT=126000 #35 hours in seconds
@@ -25,4 +26,4 @@ gcloud compute instances create smc-rna-eval-$RUN_SUFFIX \
 
 sleep 60
 
-gcloud compute --project $PROJECT ssh smc-rna-eval-$RUN_SUFFIX --zone $ZONE "nohup sudo sudo -i -u ubuntu bash /home/ubuntu/SMC-RNA-Eval/eval-entry-tumor.sh $CONTEST_ID $ENTRY_ID $TUMOR_ID $TIMEOUT > /opt/eval.out 2> /opt/eval.err &"
+gcloud compute --project $PROJECT ssh smc-rna-eval-$RUN_SUFFIX --zone $ZONE "nohup sudo sudo -i -u ubuntu bash /home/ubuntu/SMC-RNA-Eval/eval-entry-tumor.sh $CONTEST_ID $ENTRY_ID $TUMOR_ID $TIMEOUT $SBG > /opt/eval.out 2> /opt/eval.err &"

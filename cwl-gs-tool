@@ -80,6 +80,7 @@ if __name__ == "__main__":
     parser.add_argument("--cache-dir", default="cache")
     parser.add_argument("--work-base", default="/opt")
     parser.add_argument("--clear-cache", action="store_true", default=False)
+    parser.add_argument("--sbg", action="store_true", default=False)
     
     args = parser.parse_args()
     
@@ -98,6 +99,9 @@ if __name__ == "__main__":
     env = os.environ
     env['TMPDIR'] = args.work_base
     with open(os.path.join(tdir, "job.out"), "w") as stdout_handle:
-        subprocess.check_call(["cwltool", "--disable-pull", "--custom-net", "none", "--leave-container", os.path.abspath(args.cwl_file), input_path], stdout=stdout_handle, env=env, cwd=tdir)
+        if args.sbg:
+            subprocess.check_call(["rabix", "-v", os.path.abspath(args.cwl_file), "-i", input_path], stdout=stdout_handle, env=env, cwd=tdir)
+        else:
+            subprocess.check_call(["cwltool", "--disable-pull", "--custom-net", "none", "--leave-container", os.path.abspath(args.cwl_file), input_path], stdout=stdout_handle, env=env, cwd=tdir)
 
     subprocess.check_call(["gsutil", "cp", "-r", os.path.join(tdir, "*"), args.out_bucket])
