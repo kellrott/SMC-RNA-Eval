@@ -26,17 +26,19 @@ CWL_PATH=$(ls $ENTRY_PATH/$ENTRY_ID/*.cwl)
 
 # For SBG entries only
 if [ $SBG ]; then
-	./SMC-RNA-Eval/sbg_job.py $ENTRY_ID $INPUT_JOB > $INPUT_JOB
+        print "SBG entry"
+	./SMC-RNA-Eval/sbg_job.py $ENTRY_ID $INPUT_JOB > tmp_file
+	mv tmp_file $INPUT_JOB
 	./SMC-RNA-Eval/cwl-gs-tool --sbg $CWL_PATH $INPUT_JOB $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 else	
 	./SMC-RNA-Eval/cwl-gs-tool $CWL_PATH#main $INPUT_JOB $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 fi
-# Copy outputs to bucket
+ Copy outputs to bucket
 gsutil cp /opt/eval.* $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 
 # Shutdown
-if [ "$4" != "" ]; then
-  sudo poweroff
-fi
+#if [ "$4" != "" ]; then
+#  sudo poweroff
+#fi
 
 # graph agent event assembler

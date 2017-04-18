@@ -11,7 +11,8 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-   synTable = {
+    synTable = {
+        '8396553': 'gs://smc-rna-eval/entries/FusionDetection/8396553/star_index.tar.gz', 
         '8645203': 'gs://smc-rna-eval/entries/FusionDetection/8645203/star_index.tar.gz',
         '8645601': 'gs://smc-rna-eval/entries/FusionDetection/8645601/star_index.tar.gz',
         '8645625': 'gs://smc-rna-eval/entries/FusionDetection/8645625/star_index.tar.gz'
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     with open (args.input_json) as f:
         job = json.load(f)
    
-    job["index"] = {
+    job["STAR_INDEX_TAR"] = {
         "class": "File",
         "path": synTable[args.entry_id]
     }
