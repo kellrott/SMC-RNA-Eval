@@ -33,12 +33,12 @@ if [ $SBG ]; then
 else	
 	./SMC-RNA-Eval/cwl-gs-tool $CWL_PATH#main $INPUT_JOB $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 fi
- Copy outputs to bucket
+#Copy outputs to bucket
 gsutil cp /opt/eval.* $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 
 # Shutdown
-#if [ "$4" != "" ]; then
-#  sudo poweroff
-#fi
+if [ "$4" != "" ]; then
+  sudo poweroff
+fi
 
 # graph agent event assembler
