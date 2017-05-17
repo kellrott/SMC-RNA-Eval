@@ -27,7 +27,7 @@ CWL_PATH=$(ls $ENTRY_PATH/$ENTRY_ID/*.cwl)
 # For SBG entries only
 if [ $SBG ]; then
         print "SBG entry"
-	./SMC-RNA-Eval/sbg_job.py $ENTRY_ID $INPUT_JOB > tmp_file
+	./SMC-RNA-Eval/sbg_job.py $CONTEST_ID $ENTRY_ID $INPUT_JOB $ENTRY_PATH/$ENTRY_ID/task.json > tmp_file
 	mv tmp_file $INPUT_JOB
 	./SMC-RNA-Eval/cwl-gs-tool --sbg $CWL_PATH $INPUT_JOB $BUCKET/output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 else	
