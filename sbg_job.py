@@ -27,7 +27,7 @@ if __name__ == "__main__":
     d = {}   
     for key, value in task['inputs'].iteritems():
         path = "/".join(["gs://smc-rna-eval/entries", challenge, args.entry_id,value['name']])
-        d[key] = path
+        d[key] = {'path': path, 'class': 'File'}
 
 
     d.update(job)
