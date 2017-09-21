@@ -10,6 +10,8 @@ import json
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("name")
+
 parser.add_argument("cwl_file",
     help="CWL workflow file.")
 
@@ -102,9 +104,9 @@ if __name__ == "__main__":
    	job = json.loads(handle.read())
         
     # Working directory for CWL execution.
-    cwl_work_dir = "/opt/cwl"
+    cwl_work_dir = os.path.join("/opt/cwl/work", args.name)
     # Directory to download data to.
-    data_dir = "/opt/data"
+    data_dir = os.path.join("/opt/cwl/data", args.name)
     # Include CWL job file in TES input contents.
     cwl_inputs_host_path = os.path.join(cwl_work_dir, "inputs.json")
     # A little hacky, the CWL file path on the worker is based on the file path
@@ -115,23 +117,21 @@ if __name__ == "__main__":
 
     # TES task
     tes = {
-        "inputs": [{
-            "contents": json.dumps(job),
-            "path": cwl_inputs_host_path,
-        }],
+        "name": args.name,
+        "inputs": [],
         "outputs": [{
             "url": args.out_bucket,
             "path": cwl_work_dir,
             "type": "DIRECTORY",
         }],
         "executors": [{
-            "image_name": "TODO",
+            #"image_name": "TODO",
             "cmd": ["/bin/bash", "-c", docker_load_script],
             "workdir": cwl_work_dir,
-            "stdout": "/tmp/docker_load_stdout",
-            "stderr": "/tmp/docker_load_stderr",
+            "stdout": os.path.join(cwl_work_dir, "docker_load_stdout"),
+            "stderr": os.path.join(cwl_work_dir, "docker_load_stderr"),
         }, {
-            "image_name": "TODO",
+            #"image_name": "TODO",
             "cmd": build_cmd(args.sbg, cwl_workflow_host_path, cwl_inputs_host_path),
             "workdir": cwl_work_dir,
             "stdout": os.path.join(cwl_work_dir, "job.out"),
@@ -150,5 +150,9 @@ if __name__ == "__main__":
     # Map the CWL inputs into TES inputs.
     # Also, modify the "job" to strip the "gs://" prefix and map paths into cwl_work_dir.
     walk_cwl_input_files(job, collect_inputs(data_dir, tes["inputs"]))
+    tes["inputs"].append({
+        "contents": json.dumps(job),
+        "path": cwl_inputs_host_path,
+    })
 
     print(json.dumps(tes, indent=4, sort_keys=True))
