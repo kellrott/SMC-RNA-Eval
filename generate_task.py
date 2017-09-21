@@ -11,7 +11,11 @@ import uuid
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("name")
+parser.add_argument("contest", choices=["isoform", "fusion"])
+
+parser.add_argument("entry", help="entry ID, e.g 7150823")
+
+parser.add_argument("tumor", help="tumor ID, e.g. sim46")
 
 parser.add_argument("cwl_file",
     help="CWL workflow file.")
@@ -102,12 +106,14 @@ def build_cmd(is_sbg, cwl_path, inputs_path):
 if __name__ == "__main__":
     
     args = parser.parse_args()
+    contest_name = "IsoformQuantification" if args.contest == "isoform" else "FusionDetection"
+    name = contest_name + "/" + args.entry + "/" + args.tumor
     
     with open(args.job_file) as handle:
    	job = json.loads(handle.read())
         
     # Working directory for CWL execution.
-    cwl_base_dir = os.path.join("/opt/cwl/work", uuid.uuid4().hex, args.name)
+    cwl_base_dir = os.path.join("/opt/cwl/work", uuid.uuid4().hex[5:], name)
     # Directory to download data to.
     #data_dir = os.path.join("/opt/cwl/data", args.name)
     # Include CWL job file in TES input contents.
@@ -117,18 +123,18 @@ if __name__ == "__main__":
     #
     # This is because CWL workflows don't have a consistent name.
     # TODO hack here
-    cwl_workflow_host_path = os.path.join(cwl_base_dir, "entries", args.name, os.path.basename(args.cwl_file))
+    cwl_workflow_host_path = os.path.join(cwl_base_dir, "entries", contest_name, args.entry, os.path.basename(args.cwl_file))
 
     # TES task
     tes = {
-        "name": args.name,
+        "name": name,
         "inputs": [{
-            "url": "gs://smc-rna-eval/entries/" + args.name,
+            "url": "gs://smc-rna-eval/entries/" + contest_name + "/" + args.entry,
             "path": cwl_base_dir,
             "type": "DIRECTORY",
         }],
         "outputs": [{
-            "url": args.out_bucket,
+            "url": args.out_bucket + name,
             "path": os.path.join(cwl_base_dir, "work"),
             "type": "DIRECTORY",
         }],
@@ -136,7 +142,7 @@ if __name__ == "__main__":
             "image_name": "TODO",
             "cmd": ["/bin/bash", "-c", docker_load_script],
             # TODO hack here
-            "workdir": os.path.join(cwl_base_dir, "entries", args.name),
+            "workdir": os.path.join(cwl_base_dir, "entries", contest_name, args.entry),
             "stdout": os.path.join(cwl_base_dir, "work", "docker_load_stdout"),
             "stderr": os.path.join(cwl_base_dir, "work", "docker_load_stderr"),
         }, {
