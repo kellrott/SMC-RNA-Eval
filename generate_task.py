@@ -7,6 +7,7 @@ from __future__ import print_function
 import os
 import argparse
 import json
+import uuid
 
 parser = argparse.ArgumentParser()
 
@@ -28,8 +29,8 @@ parser.add_argument("--sbg",
 
 # Script that loads an entry's docker tarballs into the host's docker daemon.
 docker_load_script = """
-for *.tar; do
-    echo a;
+for a in *.tar; do
+    echo $a;
     docker load -i $a;
 done
 """
@@ -51,7 +52,9 @@ def collect_inputs(basedir, collection):
     def cb(inputs):
         url = inputs["path"]
         # Strip "gs://"
-        path = strip_gs(url)
+        #path = strip_gs(url)
+        # TODO hack here
+        path = url.replace("gs://smc-rna-eval/", "")
         # Map path into base working directory
         path = os.path.join(basedir, path)
 
@@ -104,40 +107,46 @@ if __name__ == "__main__":
    	job = json.loads(handle.read())
         
     # Working directory for CWL execution.
-    cwl_work_dir = os.path.join("/opt/cwl/work", args.name)
+    cwl_base_dir = os.path.join("/opt/cwl/work", uuid.uuid4().hex, args.name)
     # Directory to download data to.
-    data_dir = os.path.join("/opt/cwl/data", args.name)
+    #data_dir = os.path.join("/opt/cwl/data", args.name)
     # Include CWL job file in TES input contents.
-    cwl_inputs_host_path = os.path.join(cwl_work_dir, "inputs.json")
+    cwl_inputs_host_path = os.path.join(cwl_base_dir, "inputs.json")
     # A little hacky, the CWL file path on the worker is based on the file path
     # given to this script.
     #
     # This is because CWL workflows don't have a consistent name.
-    cwl_workflow_host_path = os.path.join(cwl_work_dir, os.path.basename(args.cwl_file))
+    # TODO hack here
+    cwl_workflow_host_path = os.path.join(cwl_base_dir, "entries", args.name, os.path.basename(args.cwl_file))
 
     # TES task
     tes = {
         "name": args.name,
-        "inputs": [],
+        "inputs": [{
+            "url": "gs://smc-rna-eval/entries/" + args.name,
+            "path": cwl_base_dir,
+            "type": "DIRECTORY",
+        }],
         "outputs": [{
             "url": args.out_bucket,
-            "path": cwl_work_dir,
+            "path": os.path.join(cwl_base_dir, "work"),
             "type": "DIRECTORY",
         }],
         "executors": [{
-            #"image_name": "TODO",
+            "image_name": "TODO",
             "cmd": ["/bin/bash", "-c", docker_load_script],
-            "workdir": cwl_work_dir,
-            "stdout": os.path.join(cwl_work_dir, "docker_load_stdout"),
-            "stderr": os.path.join(cwl_work_dir, "docker_load_stderr"),
+            # TODO hack here
+            "workdir": os.path.join(cwl_base_dir, "entries", args.name),
+            "stdout": os.path.join(cwl_base_dir, "work", "docker_load_stdout"),
+            "stderr": os.path.join(cwl_base_dir, "work", "docker_load_stderr"),
         }, {
-            #"image_name": "TODO",
+            "image_name": "TODO",
             "cmd": build_cmd(args.sbg, cwl_workflow_host_path, cwl_inputs_host_path),
-            "workdir": cwl_work_dir,
-            "stdout": os.path.join(cwl_work_dir, "job.out"),
-            "stderr": os.path.join(cwl_work_dir, "job.err"),
+            "workdir": os.path.join(cwl_base_dir, "work"),
+            "stdout": os.path.join(cwl_base_dir, "work", "job.out"),
+            "stderr": os.path.join(cwl_base_dir, "work", "job.err"),
             "environ": {
-                "TMPDIR": cwl_work_dir,
+                "TMPDIR": cwl_base_dir,
             },
         }],
         "resources": {
@@ -148,8 +157,8 @@ if __name__ == "__main__":
     }
 
     # Map the CWL inputs into TES inputs.
-    # Also, modify the "job" to strip the "gs://" prefix and map paths into cwl_work_dir.
-    walk_cwl_input_files(job, collect_inputs(data_dir, tes["inputs"]))
+    # Also, modify the "job" to strip the "gs://" prefix and map paths into cwl_base_dir.
+    walk_cwl_input_files(job, collect_inputs(cwl_base_dir, tes["inputs"]))
     tes["inputs"].append({
         "contents": json.dumps(job),
         "path": cwl_inputs_host_path,
