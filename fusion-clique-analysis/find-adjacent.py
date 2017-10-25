@@ -70,11 +70,45 @@ for l in open("output.files.txt").read().splitlines():
 
 leeway = 10
 
+def full_match(a, b):
+    # Note, I'm ignoring the end position because I expect all these fusions
+    # are only a single position.
+    if a.chrom1 != b.chrom1:
+        return False
+    if a.chrom2 != b.chrom1:
+        return False
+    if abs(a.start1 - b.start1) > leeway:
+        return False
+    if abs(a.start2 - b.start2) > leeway:
+        return False
+    return True
+
+def partial_match(a, b):
+    if a.chrom1 != b.chrom1 and a.chrom2 != b.chrom1:
+        return False
+    if abs(a.start1 - b.start1) > leeway and abs(a.start2 - b.start2) > leeway:
+        return False
+    return True
+
 for f in fusions:
     chrom1_tree = trees_by_chrom[f.chrom1]
     chrom2_tree = trees_by_chrom[f.chrom2]
+
     close1 = chrom1_tree.find(f.start1 - leeway, f.end1 + leeway)
     close2 = chrom2_tree.find(f.start2 - leeway, f.end2 + leeway)
-    print "entry: %s\tsim: %s\tline: %d\tnum nearby pos1: %d\tnum nearby pos2: %d" % (
-        f.entry, f.sim, f.lineno, len(close1), len(close2)
+
+    # Filter candidates from both tree queries to get only fusions that match.
+    filtered = set()
+    for c in close1 + close2:
+        if partial_match(c, f):
+            filtered.add(c)
+
+    print "entry:%s\tsim:%s\tline:%d\tchrom1:%s\tpos1:%d\tchrom2:%s\tpos2:%d\tnum adjacent:%d" % (
+        f.entry, f.sim, f.lineno, f.chrom1, f.start1, f.chrom2, f.start2, len(filtered),
     )
+    for m in list(filtered)[:10]:
+        print "entry:%s\tsim:%s\tline:%d\tchrom1:%s\tpos1:%d\tchrom2:%s\tpos2:%d" % (
+            m.entry, m.sim, m.lineno, m.chrom1, m.start1, m.chrom2, m.start2,
+        )
+    print
+
