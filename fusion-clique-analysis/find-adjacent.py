@@ -1,4 +1,4 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, Counter
 from interval.closed import Interval, Tree
 
 # Note, when thinking about positions in this code, keep in mind that BEDPE has a weird
@@ -68,47 +68,84 @@ for l in open("output.files.txt").read().splitlines():
         chrom1_tree.insert(start1, end1, f)
         chrom2_tree.insert(start2, end2, f)
 
-leeway = 10
+def full_match(leeway):
+    def _match(a, b):
+        # Note, I'm ignoring the end position because I expect all these fusions
+        # are only a single position.
+        if a.chrom1 != b.chrom1:
+            return False
+        if a.chrom2 != b.chrom1:
+            return False
+        if abs(a.start1 - b.start1) > leeway:
+            return False
+        if abs(a.start2 - b.start2) > leeway:
+            return False
+        return True
+    return _match
 
-def full_match(a, b):
-    # Note, I'm ignoring the end position because I expect all these fusions
-    # are only a single position.
-    if a.chrom1 != b.chrom1:
-        return False
-    if a.chrom2 != b.chrom1:
-        return False
-    if abs(a.start1 - b.start1) > leeway:
-        return False
-    if abs(a.start2 - b.start2) > leeway:
-        return False
-    return True
+def partial_match(leeway):
+    def _match(a, b):
+        if a.chrom1 != b.chrom1 and a.chrom2 != b.chrom1:
+            return False
+        if abs(a.start1 - b.start1) > leeway and abs(a.start2 - b.start2) > leeway:
+            return False
+        return True
+    return _match
 
-def partial_match(a, b):
-    if a.chrom1 != b.chrom1 and a.chrom2 != b.chrom1:
-        return False
-    if abs(a.start1 - b.start1) > leeway and abs(a.start2 - b.start2) > leeway:
-        return False
-    return True
 
-for f in fusions:
-    chrom1_tree = trees_by_chrom[f.chrom1]
-    chrom2_tree = trees_by_chrom[f.chrom2]
+def count(matcher, leeway):
+    match = matcher(leeway)
+    counts = Counter()
+    for f in fusions:
+        chrom1_tree = trees_by_chrom[f.chrom1]
+        chrom2_tree = trees_by_chrom[f.chrom2]
 
-    close1 = chrom1_tree.find(f.start1 - leeway, f.end1 + leeway)
-    close2 = chrom2_tree.find(f.start2 - leeway, f.end2 + leeway)
+        close1 = chrom1_tree.find(f.start1 - leeway, f.end1 + leeway)
+        close2 = chrom2_tree.find(f.start2 - leeway, f.end2 + leeway)
 
-    # Filter candidates from both tree queries to get only fusions that match.
-    filtered = set()
-    for c in close1 + close2:
-        if partial_match(c, f):
-            filtered.add(c)
+        # Filter candidates from both tree queries to get only fusions that match.
+        filtered = set()
+        for c in close1 + close2:
+            if match(c, f):
+                filtered.add(c)
 
-    print "entry:%s\tsim:%s\tline:%d\tchrom1:%s\tpos1:%d\tchrom2:%s\tpos2:%d\tnum adjacent:%d" % (
-        f.entry, f.sim, f.lineno, f.chrom1, f.start1, f.chrom2, f.start2, len(filtered),
-    )
-    for m in list(filtered)[:10]:
-        print "entry:%s\tsim:%s\tline:%d\tchrom1:%s\tpos1:%d\tchrom2:%s\tpos2:%d" % (
-            m.entry, m.sim, m.lineno, m.chrom1, m.start1, m.chrom2, m.start2,
-        )
-    print
+        c = len(filtered)
+        counts[c] += 1
+    return counts
+        #if len(filtered) > 0:
+            #print "\t".join(str(x) for x in [
+                #f.entry, f.sim, f.chrom1, f.start1, f.chrom2, f.start2, len(filtered),
+            #])
+        #for m in list(filtered)[:10]:
+            #print "entry:%s\tsim:%s\tline:%d\tpos1:%s:%d\tpos2:%s:%d" % (
+                #m.entry, m.sim, m.lineno, m.chrom1, m.start1, m.chrom2, m.start2,
+            #)
+        #print
 
+
+
+full_10 = count(full_match, 10)
+partial_10 = count(partial_match, 10)
+full_150 = count(full_match, 150)
+partial_150 = count(partial_match, 150)
+full_300 = count(full_match, 300)
+partial_300 = count(partial_match, 300)
+
+z = max(
+    max(full_10.keys()),
+    max(partial_10.keys()),
+    max(full_150.keys()), 
+    max(partial_150.keys()), 
+    max(full_300.keys()), 
+    max(partial_300.keys()),
+)
+for x in range(z+1):
+    print "\t".join(str(i) for i in [
+        x,
+        full_10[x],
+        partial_10[x],
+        full_150[x],
+        partial_150[x],
+        full_300[x],
+        partial_300[x],
+    ])
