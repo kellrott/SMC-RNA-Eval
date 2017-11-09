@@ -1,4 +1,7 @@
+import argparse
 from collections import defaultdict, namedtuple, Counter
+from glob import glob
+
 from interval.closed import Interval, Tree
 
 # Note, when thinking about positions in this code, keep in mind that BEDPE has a weird
@@ -12,12 +15,18 @@ valid_chroms = """
 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 x y
 """.strip().split()
 
-fusions = []
+fusions = {}
 trees_by_chrom = defaultdict(Tree)
 
-for l in open("output.files.txt").read().splitlines():
+# Return a key (string) for a Fusion record, `entry-sim-lineno`
+def fusion_key(f):
+    return f.entry + "-" + f.sim + "-" + str(f.lineno)
+
+# This code expects the data to be in a specific directory tree format:
+# "./downloaded-data/fusion/{entry_ID}/{tumor_ID}/*.bedpe"
+for l in glob("./downloaded-data/fusion/*/*/*.bedpe"):
     fsp = l.split("/")
-    _, _, entry, sim, _ = fsp
+    _, _, _, entry, sim, _ = fsp
     for lineno, m in enumerate(open(l).read().splitlines()):
         sp = m.split("\t")
         #print l, lineno, sp
@@ -62,12 +71,14 @@ for l in open("output.files.txt").read().splitlines():
             score,
             strand1, strand2
         )
-        fusions.append(f)
+        key = fusion_key(f)
+        fusions[key] = f
         chrom1_tree = trees_by_chrom[chrom1]
         chrom2_tree = trees_by_chrom[chrom2]
         chrom1_tree.insert(start1, end1, f)
         chrom2_tree.insert(start2, end2, f)
 
+# Require that both donor and acceptor match
 def full_match(leeway):
     def _match(a, b):
         # Note, I'm ignoring the end position because I expect all these fusions
@@ -83,6 +94,7 @@ def full_match(leeway):
         return True
     return _match
 
+# Only require one of either donor or acceptor to match
 def partial_match(leeway):
     def _match(a, b):
         if a.chrom1 != b.chrom1 and a.chrom2 != b.chrom1:
@@ -93,25 +105,30 @@ def partial_match(leeway):
     return _match
 
 
-def count(matcher, leeway):
-    match = matcher(leeway)
-    counts = Counter()
-    for f in fusions:
-        chrom1_tree = trees_by_chrom[f.chrom1]
-        chrom2_tree = trees_by_chrom[f.chrom2]
+# Given a fusion call "f", find overlapping and matching (using "match" function) fusions.
+# "leeway" is the genomic distance used to find "overlapping" fusions.
+def find_matches(f, match, leeway):
+    # Get interval trees for the chromosomes of the donor/acceptor of this fusion.
+    chrom1_tree = trees_by_chrom[f.chrom1]
+    chrom2_tree = trees_by_chrom[f.chrom2]
 
-        close1 = chrom1_tree.find(f.start1 - leeway, f.end1 + leeway)
-        close2 = chrom2_tree.find(f.start2 - leeway, f.end2 + leeway)
+    # Find other fusions overlapping the interval of both donor and acceptor.
+    match1 = chrom1_tree.find(f.start1 - leeway, f.end1 + leeway)
+    match2 = chrom2_tree.find(f.start2 - leeway, f.end2 + leeway)
 
-        # Filter candidates from both tree queries to get only fusions that match.
-        filtered = set()
-        for c in close1 + close2:
-            if match(c, f):
-                filtered.add(c)
+    # Filter candidates from both tree queries to get only fusions that match.
+    filtered = set()
+    for c in match1 + match2:
+        if match(c, f):
+            filtered.add(c)
 
-        c = len(filtered)
-        counts[c] += 1
-    return counts
+    return filtered
+
+    ## old code which counted the number of overlapping fusions
+    #counts = Counter()
+        #key = len(filtered)
+        #counts[key] += 1
+    #return counts
         #if len(filtered) > 0:
             #print "\t".join(str(x) for x in [
                 #f.entry, f.sim, f.chrom1, f.start1, f.chrom2, f.start2, len(filtered),
@@ -124,13 +141,16 @@ def count(matcher, leeway):
 
 
 
-full_10 = count(full_match, 10)
-partial_10 = count(partial_match, 10)
-full_150 = count(full_match, 150)
-partial_150 = count(partial_match, 150)
-full_300 = count(full_match, 300)
-partial_300 = count(partial_match, 300)
+for fkey, f in fusions.items():
+    for g in find_matches(f, full_match(10), 10):
+        print fkey, fusion_key(g)
+    #partial_10 = find_matches(f, partial_match(10), 10)
+    #full_150 = find_matches(f, full_match(150), 150)
+    #partial_150 = find_matches(f, partial_match(150), 150)
+    #full_300 = find_matches(f, full_match(300), 300)
+    #partial_300 = find_matches(f, partial_match(300), 300)
 
+'''
 z = max(
     max(full_10.keys()),
     max(partial_10.keys()),
@@ -149,3 +169,4 @@ for x in range(z+1):
         full_300[x],
         partial_300[x],
     ])
+'''
