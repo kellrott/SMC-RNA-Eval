@@ -28,11 +28,11 @@ if __name__ == "__main__":
         job = {
             "TUMOR_FASTQ_1" : {
                 "class" : "File",
-                "path" : "%s/%s/%s_R1_001.fastq.gz" % (args.bucket, args.data, tumor)
+                "path" : "%s/%s/%s_R2_001.fastq.gz" % (args.bucket, args.data, tumor)
             },
             "TUMOR_FASTQ_2" : {
                 "class" : "File",
-                "path" : "%s/%s/%s_R2_001.fastq.gz" % (args.bucket, args.data, tumor)
+                "path" : "%s/%s/%s_R1_001.fastq.gz" % (args.bucket, args.data, tumor)
             },
             "REFERENCE_GENOME" : {
                 "class" : "File",

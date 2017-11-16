@@ -102,6 +102,6 @@ if __name__ == "__main__":
         if args.sbg:
             subprocess.check_call(["rabix", "-v", os.path.abspath(args.cwl_file), "-i", input_path], stdout=stdout_handle, env=env, cwd=tdir)
         else:
-            subprocess.check_call(["cwltool", "--disable-pull", "--custom-net", "none", "--leave-container", os.path.abspath(args.cwl_file), input_path], stdout=stdout_handle, env=env, cwd=tdir)
+            subprocess.check_call(["cwltool", "--disable-pull", "--custom-net", "none", "--tmp-outdir-prefix",tdir,"--outdir", tdir, os.path.abspath(args.cwl_file), input_path], stdout=stdout_handle, env=env, cwd=tdir)
 
     subprocess.check_call(["gsutil", "cp", "-r", os.path.join(tdir, "*"), args.out_bucket])
