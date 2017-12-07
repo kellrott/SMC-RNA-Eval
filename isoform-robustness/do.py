@@ -91,6 +91,16 @@ def combinations(number_to_choose):
     random.shuffle(combinations)
     return combinations
 
+def sample_with_replacement(number_to_choose, number_of_combos):
+    combos = []
+    i = range(total_number_of_transcripts)
+    for y in range(number_of_combos):
+        combo = []
+        combos.append(combo)
+        for x in range(number_to_choose):
+            combo.append(random.choice(i))
+    return combos
+
 # get spearmean correlation for every combination of transcripts
 # generated above, for a single entry, compared against the "truth"
 # data.
@@ -117,8 +127,9 @@ def correlate_all_combinations(combos, entry, truth):
 # For each entry in each sample, calculate a list of correlations
 # with the truth data for each combination.
 print("sample", "entry", "K", "combo", "correlation", "p_value")
-for K in [5, 10, 14]:
-    combos = combinations(K)
+for K in [17]:
+    #combos = combinations(K)
+    combos = sample_with_replacement(K, 100)
     for sample in entries_by_sample.keys():
         truth = entries_by_sample[sample]["truth"]
         for entry_ID, rec in entries_by_sample[sample].items():
