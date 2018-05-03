@@ -28,13 +28,13 @@ if [ $SBG ]; then
         print "SBG entry"
 	./SMC-RNA-Eval/sbg_job.py $CONTEST_ID $ENTRY_ID $INPUT_JOB $ENTRY_PATH/$ENTRY_ID/task.json > tmp_file
 	mv tmp_file $INPUT_JOB
-	./SMC-RNA-Eval/cwl-gs-tool --sbg $CWL_PATH $INPUT_JOB $BUCKET/real_output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
+	./SMC-RNA-Eval/cwl-gs-tool --sbg $CWL_PATH $INPUT_JOB $BUCKET/real_output_redo_strand/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 else	
-	./SMC-RNA-Eval/cwl-gs-tool $CWL_PATH#main $INPUT_JOB $BUCKET/real_output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
+	./SMC-RNA-Eval/cwl-gs-tool $CWL_PATH#main $INPUT_JOB $BUCKET/real_output_redo_strand/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 fi
 
 # Copy outputs to bucket
-gsutil cp /opt/eval.* $BUCKET/real_output/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
+gsutil cp /opt/eval.* $BUCKET/real_output_redo_strand/$CONTEST_ID/$ENTRY_ID/$TUMOR_ID
 
 # Shutdown
 if [ "$4" != "" ]; then
