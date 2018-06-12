@@ -27,14 +27,20 @@ if __name__ == "__main__":
     with open(os.path.join(args.outdir, "submission.cwl"), "w") as handle:
         handle.write( json.dumps(cwl, indent=4) )
     
-    for k, v, in task['inputs'].items():
-        if isinstance(v,dict) and 'File' == v.get('class', None):
-            file_info = requests.get("https://cgc-api.sbgenomics.com/v2/files/%s" % (v['path']), headers={"X-SBG-Auth-Token" : args.token}).json()            
-            file_download = requests.get("https://cgc-api.sbgenomics.com/v2/files/%s/download_info" % (v['path']), headers={"X-SBG-Auth-Token" : args.token}).json()
-            print "Downloading %s from %s" % (file_info['name'], file_download['url'])
-            r = requests.get(file_download['url'], headers={"X-SBG-Auth-Token" : args.token}, stream=True)
-            with open(os.path.join(args.outdir, file_info['name']), 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024): 
-                    if chunk:
-                        f.write(chunk)
-                
+    for keys, vals, in task['inputs'].items():
+        a = []
+        if not isinstance(vals,list):
+            a.append(vals)
+        else:
+            a = vals
+
+        for v in a:
+            if isinstance(v,dict) and 'File' == v.get('class', None):
+                file_info = requests.get("https://cgc-api.sbgenomics.com/v2/files/%s" % (v['path']), headers={"X-SBG-Auth-Token" : args.token}).json()
+                file_download = requests.get("https://cgc-api.sbgenomics.com/v2/files/%s/download_info" % (v['path']), headers={"X-SBG-Auth-Token" : args.token}).json()
+                print "Downloading %s from %s" % (file_info['name'], file_download['url'])
+                r = requests.get(file_download['url'], headers={"X-SBG-Auth-Token" : args.token}, stream=True)
+                with open(os.path.join(args.outdir, file_info['name']), 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=1024):
+                        if chunk:
+                            f.write(chunk)
