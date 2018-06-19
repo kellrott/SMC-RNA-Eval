@@ -58,9 +58,23 @@ where:
 
 
 
+## Link fusions to genes
+```
+go run feature-extract/gene_link.go fusion-analysis/combined-fusion-data.tsv Homo_sapiens.GRCh37.75.gtf.gz
+```
 
+## GTF Feature Extraction
+```
+go run feature-extract/gtf_extract.go Homo_sapiens.GRCh37.75.gtf.gz
+```
 
 ## Analysis matrix loading
+
+Add GID
+```
+cat combined-fusion-data.tsv | awk '{print $1 "_" $6 "_" $7 "_" $8 "_" $9 "_" $10 "\t" $0}' > combined-fusion-data.tsv.gid
+```
+Load Matrix
 ```
 ../../arachne/src/github.com/bmeg/arachne/example/load_matrix.py smc-rna combined-fusion-data.tsv.gid --row-label Fusion --columns gid entry_id sample_id sample_name method user chrom_1 start_1 strand_1 chrom_2 start_2 strand_2 score -e '{sample_id}' sample -e '{entry_id}' entry
 ```
