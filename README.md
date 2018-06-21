@@ -65,7 +65,7 @@ go run feature-extract/gene_link.go fusion-analysis/combined-fusion-data.tsv Hom
 
 ## GTF Feature Extraction
 ```
-go run feature-extract/gtf_extract.go Homo_sapiens.GRCh37.75.gtf.gz
+go run feature-extract/gtf_extract.go Homo_sapiens.GRCh37.75.gtf.gz > gene_features.tsv
 ```
 
 ## Analysis matrix loading

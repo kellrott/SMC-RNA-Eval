@@ -97,6 +97,7 @@ func main() {
   }
   freader.Close()
 
+  fmt.Printf("FusionName\tGene1Name\tGene2Name\n")
   for _, k := range fusions {
     acc := fmt.Sprintf("%s_%d_%s", k.Acc.Chrome, k.Acc.Loc, k.Acc.Strand)
     don := fmt.Sprintf("%s_%d_%s", k.Don.Chrome, k.Don.Loc, k.Don.Strand)
