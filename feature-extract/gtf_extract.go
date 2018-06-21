@@ -65,6 +65,56 @@ func (e *ExonCounter) AddFeature(feat *gff.Feature) {
   }
 }
 
+type TranscriptCounter struct {
+  transcripts map[string]map[string]int
+}
+
+func NewTranscriptCounter() TranscriptCounter {
+  return TranscriptCounter{map[string]map[string]int{}}
+}
+
+func (e *TranscriptCounter) AddFeature(feat *gff.Feature) {
+  if feat.Feature == "exon" {
+    trans_id := cleanQuotes(feat.FeatAttributes.Get("transcript_id"))
+    gene_id := cleanQuotes(feat.FeatAttributes.Get("gene_id"))
+    featLen := feat.FeatEnd - feat.FeatStart
+    if x, ok := e.transcripts[gene_id]; ok {
+      x[trans_id] = x[trans_id] + featLen
+    } else {
+      e.transcripts[gene_id] = map[string]int{trans_id:featLen}
+    }
+  }
+}
+
+func mapItemMax(m map[string]int) int {
+  v := make([]int, 0, len(m))
+  for  _, value := range m {
+     v = append(v, value)
+  }
+  o := v[0]
+  for _, i := range v {
+    if i > o {
+      o = i
+    }
+  }
+  return o
+}
+
+func mapItemMin(m map[string]int) int {
+  v := make([]int, 0, len(m))
+  for  _, value := range m {
+     v = append(v, value)
+  }
+  o := v[0]
+  for _, i := range v {
+    if i < o {
+      o = i
+    }
+  }
+  return o
+}
+
+
 func main() {
 
   flag.Parse()
@@ -78,6 +128,7 @@ func main() {
   featReader := gff.NewReader(reader)
 
   exonCounter := NewExonCounter()
+  transCounter := NewTranscriptCounter()
 
   ws := sync.WaitGroup{}
   featChan := make(chan *gff.Feature, 1000)
@@ -85,6 +136,7 @@ func main() {
     ws.Add(1)
     for feat := range featChan {
       exonCounter.AddFeature(feat)
+      transCounter.AddFeature(feat)
     }
     ws.Done()
   }()
@@ -101,8 +153,13 @@ func main() {
   freader.Close()
   ws.Wait()
 
-  for k, v := range exonCounter.counts {
-    fmt.Printf("%s\t%d\n", k, v)
+  fmt.Printf("Gene\tExonCount\tTranscriptCount\tMaxTranscriptLength\tMinTranscriptLength\n")
+  for k, _ := range exonCounter.counts {
+    fmt.Printf("%s\t%d\t%d\t%d\t%d\n", k,
+      exonCounter.counts[k],
+      len(transCounter.transcripts[k]),
+      mapItemMax(transCounter.transcripts[k]),
+      mapItemMin(transCounter.transcripts[k]))
   }
 
 }
