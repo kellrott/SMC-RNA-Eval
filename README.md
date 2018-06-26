@@ -72,9 +72,17 @@ go run feature-extract/gtf_extract.go Homo_sapiens.GRCh37.75.gtf.gz > gene_featu
 
 Add GID
 ```
-cat combined-fusion-data.tsv | awk '{print $1 "_" $6 "_" $7 "_" $8 "_" $9 "_" $10 "\t" $0}' > combined-fusion-data.tsv.gid
+cat fusion-analysis/combined-fusion-data.tsv | awk -F '\t' '{print $1 "_" $6 "_" $7 "_" $8 "_" $9 "_" $10 "_" $11 "\t" $0}' > fusion-analysis/combined-fusion-data.tsv.gid
 ```
 Load Matrix
 ```
-../../arachne/src/github.com/bmeg/arachne/example/load_matrix.py smc-rna combined-fusion-data.tsv.gid --row-label Fusion --columns gid entry_id sample_id sample_name method user chrom_1 start_1 strand_1 chrom_2 start_2 strand_2 score -e '{sample_id}' sample -e '{entry_id}' entry
+load_matrix.py smc-rna fusion-analysis/combined-fusion-data.tsv.gid --row-label Fusion --columns gid entry_id sample_id sample_name method user chrom_1 start_1 strand_1 chrom_2 start_2 strand_2 score -e '{sample_id}' sample -e '{entry_id}' entry
+
+load_matrix.py smc-rna fusion-analysis/gene_features.tsv --row-label Gene
+
+load_matrix.py smc-rna fusion-analysis/fusion-gene-link.tsv --no-vertex -e '{Gene1Name}' gene1 -e '{Gene2Name}' gene2
+
+load_matrix.py smc-rna entry_list/fusion/fusion_list.tsv --row-label 'Entry'
+
+load_matrix.py smc-rna fusion-analysis/transcript_features.tsv --columns gene_id gid gc_content transcript_len --index-col 1 -e {gene_id} gene --row-label Transcript
 ```
