@@ -1,0 +1,7 @@
+category annotation for method, team
+better ordering
+ - truth on left
+ - try to group truth blocks better
+
+better highlighting of rows which have calls across multiple columns
+vs columns with many calls across rows
