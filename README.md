@@ -72,7 +72,7 @@ go run feature-extract/gtf_extract.go Homo_sapiens.GRCh37.75.gtf.gz > gene_featu
 
 Add GID
 ```
-cat fusion-analysis/combined-fusion-data.tsv | awk -F '\t' '{print $1 "_" $6 "_" $7 "_" $8 "_" $9 "_" $10 "_" $11 "\t" $0}' > fusion-analysis/combined-fusion-data.tsv.gid
+cat fusion-analysis/combined-fusion-data.tsv | awk -F '\t' '{print $1 ":" $2 ":" $6 ":" $7 ":" $8 ":" $9 ":" $10 ":" $11 "\t" $0}' > fusion-analysis/combined-fusion-data.tsv.gid
 ```
 Load Matrix
 ```

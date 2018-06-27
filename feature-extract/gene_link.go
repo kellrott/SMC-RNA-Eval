@@ -21,6 +21,7 @@ type Loc struct {
 
 type Fusion struct {
   Method string
+  Sample string
   Acc Loc
   AccGene string
   Don Loc
@@ -65,7 +66,7 @@ func main() {
   for line := range lines {
     if len(line) > 0 {
       row := strings.Split(string(line), "\t")
-      f := Fusion{ Method:row[0], Acc:Loc{Chrome:row[5], Loc:atoi(row[6]), Strand:toStrand(row[7])},
+      f := Fusion{ Method:row[0], Sample:row[1], Acc:Loc{Chrome:row[5], Loc:atoi(row[6]), Strand:toStrand(row[7])},
         Don:Loc{Chrome:row[8], Loc:atoi(row[9]), Strand:toStrand(row[10])},
       }
       fusions = append(fusions, &f)
@@ -100,9 +101,9 @@ func main() {
 
   fmt.Printf("FusionName\tGene1Name\tGene2Name\n")
   for _, k := range fusions {
-    acc := fmt.Sprintf("%s_%d_%s", k.Acc.Chrome, k.Acc.Loc, k.Acc.Strand)
-    don := fmt.Sprintf("%s_%d_%s", k.Don.Chrome, k.Don.Loc, k.Don.Strand)
-    fmt.Printf("%s_%s_%s\t%s\t%s\n", k.Method, acc, don, k.AccGene, k.DonGene)
+    acc := fmt.Sprintf("%s:%d:%s", k.Acc.Chrome, k.Acc.Loc, k.Acc.Strand)
+    don := fmt.Sprintf("%s:%d:%s", k.Don.Chrome, k.Don.Loc, k.Don.Strand)
+    fmt.Printf("%s:%s:%s:%s\t%s\t%s\n", k.Method, k.Sample, acc, don, k.AccGene, k.DonGene)
   }
 
 }
