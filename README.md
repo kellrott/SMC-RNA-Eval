@@ -68,15 +68,20 @@ go run feature-extract/gene_link.go fusion-analysis/combined-fusion-data.tsv Hom
 go run feature-extract/gtf_extract.go Homo_sapiens.GRCh37.75.gtf.gz > gene_features.tsv
 ```
 
+```
+mkdir analysis
+synapse get -r syn9712104 --downloadLocation analysis/
+```
+
 ## Analysis matrix loading
 
 Add GID
 ```
-cat fusion-analysis/combined-fusion-data.tsv | awk -F '\t' '{print $1 ":" $2 ":" $6 ":" $7 ":" $8 ":" $9 ":" $10 ":" $11 "\t" $0}' > fusion-analysis/combined-fusion-data.tsv.gid
+cat analysis/fusion-analysis/combined-fusion-data.tsv | awk -F '\t' '{print $1 ":" $2 ":" $6 ":" $7 ":" $8 ":" $9 ":" $10 ":" $11 "\t" $0}' > analysis/fusion-analysis/combined-fusion-data.tsv.gid
 ```
 Load Matrix
 ```
-load_matrix.py smc-rna fusion-analysis/combined-fusion-data.tsv.gid --row-label Fusion --columns gid entry_id sample_id sample_name method user chrom_1 start_1 strand_1 chrom_2 start_2 strand_2 score -e '{sample_id}' sample -e '{entry_id}' entry
+load_matrix.py smc-rna analysis/fusion-analysis/combined-fusion-data.tsv.gid --row-label Fusion --columns gid entry_id sample_id sample_name method user chrom_1 start_1 strand_1 chrom_2 start_2 strand_2 score -e '{sample_id}' sample -e '{entry_id}' entry
 
 load_matrix.py smc-rna fusion-analysis/gene_features.tsv --row-label Gene
 
