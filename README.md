@@ -83,11 +83,11 @@ Load Matrix
 ```
 load_matrix.py smc-rna analysis/fusion-analysis/combined-fusion-data.tsv.gid --row-label Fusion --columns gid entry_id sample_id sample_name method user chrom_1 start_1 strand_1 chrom_2 start_2 strand_2 score -e '{sample_id}' sample -e '{entry_id}' entry
 
-load_matrix.py smc-rna fusion-analysis/gene_features.tsv --row-label Gene
+load_matrix.py smc-rna analysis/fusion-analysis/gene_features.tsv --row-label Gene
 
-load_matrix.py smc-rna fusion-analysis/fusion-gene-link.tsv --no-vertex -e '{Gene1Name}' gene1 -e '{Gene2Name}' gene2
+load_matrix.py smc-rna analysis/fusion-analysis/fusion-gene-link.tsv --no-vertex -e '{Gene1Name}' gene1 -e '{Gene2Name}' gene2
 
-load_matrix.py smc-rna entry_list/fusion/fusion_list.tsv --row-label 'Entry'
+load_matrix.py smc-rna analysis/entry_list/fusion/fusion_list.tsv --row-label 'Entry'
 
-load_matrix.py smc-rna fusion-analysis/transcript_features.tsv --columns gene_id gid gc_content transcript_len --index-col 1 -e {gene_id} gene --row-label Transcript
+load_matrix.py smc-rna analysis/fusion-analysis/transcript_features.tsv --columns gene_id gid gc_content transcript_len --index-col 1 -e {gene_id} gene --row-label Transcript
 ```
