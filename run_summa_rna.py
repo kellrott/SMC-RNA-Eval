@@ -7,9 +7,12 @@ import random
 import json
 import numpy as np
 
+SAMPLE_SIZE=0.5
+
 INPUT_PATH=sys.argv[1]
 RANDOM_SEED=int(sys.argv[2])
 OUTPUT_PATH=sys.argv[3]
+SAMPLE_COUNT=int(sys.argv[4])
 
 
 def compute_scores(data, weights):
@@ -20,8 +23,6 @@ def compute_scores(data, weights):
 
 random.seed(RANDOM_SEED)
 
-SAMPLE_SIZE=0.5
-SAMPLE_COUNT=1000
 
 fusions=pandas.read_csv(INPUT_PATH, index_col=0, sep="\t").transpose()
 

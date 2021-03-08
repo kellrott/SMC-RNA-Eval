@@ -26,7 +26,8 @@ tDoc = """
         "/opt/summa/script/run_summa_rna.py",
         "/data/matrix.tsv",
         "${SEED}",
-        "/data/outfile-${SEED}.json"
+        "/data/outfile-${SEED}.json",
+        "${COUNT}"
       ]
     },{
       "image": "docker.compbio.ohsu.edu/summa:latest",
@@ -47,7 +48,8 @@ template = string.Template(tDoc)
 INPUT=sys.argv[1]
 SEED=sys.argv[2]
 OUTPUT=sys.argv[3]
+COUNT=sys.argv[4]
 
-doc = template.substitute(INPUT=INPUT,SEED=SEED,OUTPUT=OUTPUT)
+doc = template.substitute(INPUT=INPUT,SEED=SEED,OUTPUT=OUTPUT,COUNT=COUNT)
 
 print(doc)
