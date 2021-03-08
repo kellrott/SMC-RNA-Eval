@@ -1,57 +1,49 @@
 # SMC-RNA-Eval
 
-Google tools:
-https://cloud.google.com/sdk/docs/quickstart-linux
+This code is used to test submissions to the [ICGC-TCGA DREAM Somatic Mutation Calling - RNA Challenge](https://www.synapse.org/#!Synapse:syn2813589/wiki/401435) (SMC-RNA).
 
-wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-128.0.0-linux-x86_64.tar.gz
-tar xvzf google-cloud-sdk-128.0.0-linux-x86_64.tar.gz
-. google-cloud-sdk/path.bash.inc
-gcloud auth login
+This code is intended to be run on Google Compute Engine (GCE) and presumes access to Google Cloud Storage (GS) buckets and Synapse storage related to the challenge.
 
+The challenge works like this:
 
-Other code
-==========
+1. Public **training data** is generated.
+2. Participants use that training data to **develop and submit** tools to the challenge. 
+3. Submissions are **tested** against private tumor data and produces results.
+4. Results from the tests are **evaluated statistically** and posted to a public leaderboard.
 
-git clone https://github.com/Sage-Bionetworks/SMC-RNA-Challenge.git
+Each tool does **isoform** quantification and/or **fusion** detection.
 
-bash SMC-RNA-Challenge/install-ubuntu.sh
+Repos:
 
+[alliecreason/rnaseqSim](https://github.com/alliecreason/rnaseqSim) handles #1
 
-Docker Install
-==============
+[Sage-Bionetworks/SMC-RNA-Challenge](https://github.com/Sage-Bionetworks/SMC-RNA-Challenge) does #2 and #4
 
-sudo usermod -aG docker $USER
-
-
-Get an entry
-============
-
-mkdir data
-
-./get-entry-cache.sh isoform 7150898
-cd entries/7150898/
-
-Load Entries
-`for a in *.tar; do docker load -i $a; done`
-
-../../SMC-RNA-Challenge/script/dream_runner.py inputs sim1 isoform_1471603893_merged.cwl isoform --dir ../../data
+This repo does #3
 
 
+Quick start
+===========
+
+`install.sh` installs dependencies. You probably don't need it. There's probably already a VM snapshot in GCE.
+
+`./deploy.sh isoform 7367548 sim6 n1-standard-4` would test the `isoform` quantification of submission `7367548` using the `sim6` test data on a `n1-standard-4` GCE VM. This will create a GCE instance, download data, and run the CWL workflow for the given submission and test data.
+
+You can edit `deploy.sh` to configure variables for snapshot, zone, timeout, disk size, etc.
 
 
+More detail
+===========
 
-## DREAM_Evaluation.py
-Usage:
-	
-	python DREAM_Evaluation.py -t <task_id: str> -p <eval-project: str> -f <eval_fq_1.fq.gz: str> <eval_fq_2.fq.gz: str>
+A quick summary of each script. See each script for more details:
 
-
-For example:
-
-	python DREAM_Evaluation.py -t "752c1086-9d42-445f-a59e-38020a0857c9" -p "smc-rna-admin/evaluation-project" -f "eval_1.fq.gz" "eval_2.fq.gz"
-	
-where: 
-
-- **"752c1086-9d42-445f-a59e-38020a0857c9"** is the task ID submitted by the DREAM Challenge participant (smc-rna-admin is invited to this project)
-- **"smc-rna-admin/evaluation-project** is a project belonging to smc-rna-admin and to which participants do *not* have access. This is where the submission will be evaluated on withheld data
-- **"eval\_\*.fq.gz"** are filenames for paired-end fastqs in the **"smc-rna-admin/evaluation-project**
+- `deploy.sh` is the top level and is described above. It calls `eval-entry-tumor.sh`.
+- `eval-entry-tumor.sh` will:
+  - download data
+  - load docker images
+  - prepare the CWL inputs file
+  - run the CWL workflow
+  - upload results
+  - optionally power off the VM
+- `generate-job.py` prepares the CWL inputs file for the test data.
+- `cwl-gs-tool` runs the CWL workflow
